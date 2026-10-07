@@ -88,7 +88,6 @@ func FixGrammar(mots []string) []string {
 					mots[i-1] = "An"
 				}
 			}
-		mots = append(mots[:i], mots[i+1:]...)
 		}
 	}
 	return mots
