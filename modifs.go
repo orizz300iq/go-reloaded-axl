@@ -11,13 +11,13 @@ func ProcessText (input string) string {
 
 	words = ProcessWords(words)
 
-	text := strings.Join(words, " ")
-
-	text = FixPonctuation(text)
+	words = FixPonctuation(words)
 	
-	text = FixPhrases(text)
+	words = FixPhrases(words)
 
-	text = FixGrammar(text)
+	words = FixGrammar(words)
+
+	text := strings.Join(words, " ")
 
 	return text
 }
@@ -70,16 +70,38 @@ func ProcessWords(mots []string) []string {
 	}
 }
 
-func FixPonctuation(texte string) string {
+func FixPonctuation(mots []string) []string {
 
 }
 
-func FixPhrases(texte string) string {
+func FixPhrases(mots []string) []string {
 
 }
 
-func FixGrammar(texte string) string {
+func FixGrammar(mots []string) []string {
+	for i := 0; i < len(mots); i++ {
+		if len(mots[i]) > 0 {
+			if i > 0 {
+				if isVowelorH(mots[i][0]) && mots[i-1] == "a" {
+					mots[i-1] = "an"
+				} else if isVowelorH(mots[i][0]) && mots[i-1] == "A" {
+					mots[i-1] = "An"
+				}
+			}
+		mots = append(mots[:i], mots[i+1:]...)
+		}
+	}
+	return mots
+}
 
+func isVowelorH (lettre byte) bool {
+	switch lettre {
+	case 'a', 'e', 'i', 'o', 'u', 'h',
+		'A', 'E', 'I', 'O', 'U', 'H':
+		return true
+	default:
+		return false
+	}
 }
 
 func Capitalize(s string) string {
