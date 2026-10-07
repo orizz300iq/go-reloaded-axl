@@ -18,6 +18,8 @@ func ProcessText (input string) string {
 	text = FixPhrases(text)
 
 	text = FixGrammar(text)
+
+	return text
 }
 
 func ProcessWords(mots []string) []string {
