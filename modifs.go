@@ -24,6 +24,46 @@ func ProcessText (input string) string {
 
 func ProcessWords(mots []string) []string {
 	for i := 0; i < len(mots); i++ {
+		if i+1 < len(mots) && strings.HasPrefix(mots[i], "(") && strings.Contains(mots[i], ",") && strings.HasSuffix(mots[i+1], ")") {
+			// Extraire le tag (ex: "(low," -> "low")
+			tag := strings.TrimPrefix(mots[i], "(")
+			tag = strings.TrimSuffix(tag, ",")
+
+			// Extraire le nombre (ex: "2)" -> 2)
+			numStr := strings.TrimSuffix(mots[i+1], ")")
+			count, err := strconv.Atoi(numStr)
+
+			if err == nil && count > 0 {
+				start := i - count
+				if start < 0 {
+					start = 0
+				}
+				for j := start; j < i; j++ {
+					switch tag {
+					case "up":
+						mots[j] = strings.ToUpper(mots[j])
+					case "low":
+						mots[j] = strings.ToLower(mots[j])
+					case "cap":
+						mots[j] = Capitalize(mots[j])
+					case "hex":
+						if val, err := strconv.ParseInt(mots[j], 16, 64); err == nil {
+							mots[j] = strconv.FormatInt(val, 10)
+						}
+					case "bin":
+						if val, err := strconv.ParseInt(mots[j], 2, 64); err == nil {
+							mots[j] = strconv.FormatInt(val, 10)
+						}
+					}
+				}
+
+				// Supprimer les DEUX éléments de la balise du tableau
+				mots = append(mots[:i], mots[i+2:]...)
+				i--
+				continue
+			}
+		}
+		
 		switch mots[i] {
 			
 		case "(hex)":
@@ -68,6 +108,7 @@ func ProcessWords(mots []string) []string {
 		}
 
 	}
+	return mots
 }
 
 func FixPonctuation(mots []string) []string {
