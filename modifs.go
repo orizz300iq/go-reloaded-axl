@@ -5,14 +5,14 @@ import (
 	"strings"
 )
 
-func ProcessText (input string) string {
-	
+func ProcessText(input string) string {
+
 	words := strings.Fields(input)
 
 	words = ProcessWords(words)
 
 	words = FixPonctuation(words)
-	
+
 	words = FixPhrases(words)
 
 	words = FixGrammar(words)
@@ -63,9 +63,9 @@ func ProcessWords(mots []string) []string {
 				continue
 			}
 		}
-		
+
 		switch mots[i] {
-			
+
 		case "(hex)":
 			if i > 0 {
 				val, err := strconv.ParseInt(mots[i-1], 16, 64)
@@ -75,7 +75,7 @@ func ProcessWords(mots []string) []string {
 			}
 			mots = append(mots[:i], mots[i+1:]...)
 			i--
-		
+
 		case "(bin)":
 			if i > 0 {
 				val, err := strconv.ParseInt(mots[i-1], 2, 64)
@@ -85,7 +85,7 @@ func ProcessWords(mots []string) []string {
 			}
 			mots = append(mots[:i], mots[i+1:]...)
 			i--
-		
+
 		case "(up)":
 			if i > 0 {
 				mots[i-1] = strings.ToUpper(mots[i-1])
@@ -112,11 +112,63 @@ func ProcessWords(mots []string) []string {
 }
 
 func FixPonctuation(mots []string) []string {
+	text := strings.Join(mots, " ")
 
+	// 1. Coller la ponctuation au mot précédent (supprime l'espace avant)
+	puncts := []string{".", ",", "!", "?", ":", ";"}
+	for _, p := range puncts {
+		text = strings.ReplaceAll(text, " "+p, p)
+	}
+
+	// 2. S'assurer qu'il y a un espace après la ponctuation (si un mot suit)
+	var sb strings.Builder
+	runes := []rune(text)
+	for i := 0; i < len(runes); i++ {
+		sb.WriteRune(runes[i])
+		r := runes[i]
+		if isPunctuationChar(r) {
+			if i+1 < len(runes) {
+				next := runes[i+1]
+				// On ajoute un espace si le caractère suivant n'est ni un espace, ni une apostrophe, ni un autre signe de ponctuation
+				if next != ' ' && next != '\'' && !isPunctuationChar(next) {
+					sb.WriteRune(' ')
+				}
+			}
+		}
+	}
+
+	return strings.Fields(sb.String())
+}
+
+func isPunctuationChar(r rune) bool {
+	return r == '.' || r == ',' || r == '!' || r == '?' || r == ':' || r == ';'
 }
 
 func FixPhrases(mots []string) []string {
+	var result []string
+	isOpen := false
 
+	for i := 0; i < len(mots); i++ {
+		w := mots[i]
+		if w == "'" {
+			if !isOpen {
+				isOpen = true
+				if i+1 < len(mots) {
+					mots[i+1] = "'" + mots[i+1]
+					continue
+				}
+			} else {
+				isOpen = false
+				if len(result) > 0 {
+					result[len(result)-1] = result[len(result)-1] + "'"
+					continue
+				}
+			}
+		}
+		result = append(result, w)
+	}
+
+	return result
 }
 
 func FixGrammar(mots []string) []string {
@@ -134,7 +186,7 @@ func FixGrammar(mots []string) []string {
 	return mots
 }
 
-func isVowelorH (lettre byte) bool {
+func isVowelorH(lettre byte) bool {
 	switch lettre {
 	case 'a', 'e', 'i', 'o', 'u', 'h',
 		'A', 'E', 'I', 'O', 'U', 'H':
